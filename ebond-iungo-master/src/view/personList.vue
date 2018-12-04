@@ -253,12 +253,30 @@
                                         <el-col :span="24">
                                             <div class="personList-formBox_btn">
                                                 <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('menbasicCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                                <el-button size="mini" icon="el-icon-view"></el-button>
+                                                <el-button size="mini">
+                                                    <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
+                                                        <i class="el-icon-view"></i>
+                                                        <input type="file" accept="image/*" capture="camera" style="display:none" id="upload" ref="input" @change="upload(fBoxNum)">
+                                                    </label>
+                                                </el-button>
                                             </div>
+                                            <el-dialog
+                                                title="提示"
+                                                :visible="centerDialogVisible"
+                                                width="30%"
+                                                center>
+                                                <span>需要注意的是内容是默认不居中的</span>
+                                                <img src="" alt="" ref="img">
+                                                <span slot="footer" class="dialog-footer">
+                                                    <el-button @click="centerDialogVisible = false">取 消</el-button>
+                                                    <el-button type="primary" @click="centerDialogVisible = false">确 定</el-button>
+                                                </span>
+                                                </el-dialog>
                                         </el-col>
                                     </el-row>
                                 </el-form>
                             </div>
+                            
                         </swiper-slide>
                         <div class="swiper-pagination" slot="pagination"></div>
                     </swiper>
@@ -337,7 +355,12 @@
                                     <el-col :span="24">
                                         <div class="personList-formBox_btn">
                                             <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('menReproductiveCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                            <el-button size="mini" icon="el-icon-view"></el-button>
+                                            <el-button size="mini">
+                                                <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
+                                                    <i class="el-icon-view"></i>
+                                                    <input type="file" accept="image/*" capture="camera" style="display:none" id="upload" @change="upload">
+                                                </label>
+                                            </el-button>
                                         </div>
                                     </el-col>
                                 </el-row>
@@ -413,7 +436,12 @@
                                     <el-col :span="24">
                                         <div class="personList-formBox_btn">
                                             <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('womenbasicCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                            <el-button size="mini" icon="el-icon-view"></el-button>
+                                            <el-button size="mini">
+                                                <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
+                                                    <i class="el-icon-view"></i>
+                                                    <input type="file" accept="image/*" capture="camera" style="display:none" id="upload">
+                                                </label>
+                                            </el-button>
                                         </div>
                                     </el-col>
                                 </el-row>
@@ -497,7 +525,12 @@
                                     <el-col :span="24">
                                         <div class="personList-formBox_btn">
                                             <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('womenReproductiveCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                            <el-button size="mini" icon="el-icon-view"></el-button>
+                                            <el-button size="mini">
+                                                <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
+                                                    <i class="el-icon-view"></i>
+                                                    <input type="file" accept="image/*" capture="camera" style="display:none" id="upload">
+                                                </label>
+                                            </el-button>
                                         </div>
                                     </el-col>
                                 </el-row>
@@ -603,6 +636,12 @@
                                     </span>
                                     <span class="medical-state_btnGroud" v-else>
                                         <el-button  type="primary" size="mini" icon="el-icon-check" @click.native="openAlert(item.finishType,'修改成功',index)"></el-button>
+                                        <el-button  type="primary" size="mini">
+                                            <label for="upload" style="display:block;">
+                                                <i class="el-icon-view"></i>
+                                                <input type="file" accept="image/*" capture="camera" style="display:none" id="upload" @change="upload">
+                                            </label>
+                                        </el-button>
                                     </span>
                                 </div>
                                 <!--项目详情查看 end-->
@@ -631,6 +670,7 @@ export default {
   },
   data () {
     return {
+      centerDialogVisible: false,
       swiperOption: { //  swiper相关配置
         pagination: {
           el: '.swiper-pagination'
@@ -1303,6 +1343,11 @@ export default {
   mounted () {
   },
   methods: {
+    upload (index) {
+      var input = this.$refs.input;
+      console.log(index)
+    },
+      openCamera () {},
     //  添加新患者
     addTabPerson () {
       this.newAddPerson = true
@@ -1365,6 +1410,7 @@ export default {
     //  弹窗事件
     openAlert (val, title, index, type) { // val 当前的状态 title 弹窗显示的信息  index list条数的序号  type 可选 重新填写 true  再次检查 false
       let self = this
+      console.log(val, title, index, type)
       if (val == '3') {
         //  调用接口 提交信息
         let loadingInstance = this.$loading({
@@ -1404,7 +1450,7 @@ export default {
       if (this.tabNum == index) {
         return;
       }
-      console.log(item, '++++++',index)
+    //   console.log(item, '++++++',index)
       this.patientId = item.id
       //  获取患者相应的电子病历
       APIDATE.medicalRecord({pk: this.patientId}).then((res) => {

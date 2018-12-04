@@ -27,7 +27,7 @@
                                 </el-input>
                             </el-form-item>
                             <el-form-item prop="password">
-                                <el-input v-model="loginForm.password" type="password" placeholder="密码">
+                                <el-input v-model="loginForm.password" type="password" placeholder="密码" @keyup.enter.native="submitForm('loginForm')">
                                     <i slot="prefix" class="el-input__icon hui-icon-ziyuan "></i>
                                 </el-input>
                             </el-form-item>

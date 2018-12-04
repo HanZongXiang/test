@@ -64,6 +64,7 @@
 <script>
 import APIUSER from '@/api/api_user.js'
 import APIDATA from '@/api/api_data.js'
+require('../WebWX/OSS.min.js')
 import {bus} from '@/bus/bus.js'
 export default {
   name: 'Home',
@@ -127,6 +128,7 @@ export default {
 
     this.userProfile();
     // this.practitionersDetail();
+    this.heartBeat()
   },
   methods: {
     //  编辑提交个人信息
@@ -154,10 +156,40 @@ export default {
         this.notification() // 消息推送 websocket
       })
     },
+
+    heartBeat() {
+      var self = this;
+      this.setOSS();
+      setInterval(function () {
+        self.setOSS();
+        console.log(2)
+      },3000 * 1000)
+    },
+
+    setOSS() {
+      var self = this;
+      APIUSER.ossClient().then((res) => {
+        console.log('res: ',res)
+        let data = res[0];
+        // console.log(data)
+        var uid = data["uid"];
+        var ukey = data["ukey"];
+        var token = data["token"];
+        var ossConfig = {
+          accessKeyId: uid,
+          accessKeySecret: ukey,
+          stsToken: token,
+          endpoint: self.endpoint,
+          bucket: self.bucket
+        };
+        self.ossClient = new OSS(ossConfig);
+        console.log('ossClient: ' , self.ossClient)
+      })
+    },
     //  获取用户信息
     userProfile () {
       APIUSER.userprofile().then((res) => {
-        console.log(res)
+        console.log('userprofile: ',res)
         let data = res[0];
         this.isFristLogin = data.is_FirstLogin
         this.person.name = data.username
@@ -180,12 +212,12 @@ export default {
        */
       notification(){
           let baseUrl = '47.94.6.105:80';
-          alert(this.practitionersEditId)
-          this.chatSocket = new WebSocket(`ws://47.94.6.105:80/ws/notification/${this.formPractitioner.user}/`);
-          this.chatSocket.onopen = this.websocketopen;
-          this.chatSocket.onmessage = this.websocketonmessage;
-          this.chatSocket.onclose = this.websocketclose;
-          this.chatSocket.onerror = this.websocketerror;
+          this.$store.state.notificationSocket = new WebSocket(`ws://47.94.6.105:80/ws/notification/${this.formPractitioner.user}/`);
+          
+          this.$store.state.notificationSocket.onopen = this.websocketopen;
+          this.$store.state.notificationSocket.onmessage = this.websocketonmessage;
+          this.$store.state.notificationSocket.onclose = this.websocketclose;
+          this.$store.state.notificationSocket.onerror = this.websocketerror;
 
       },
       websocketopen(){//打开

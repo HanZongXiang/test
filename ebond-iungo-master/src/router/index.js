@@ -68,7 +68,7 @@ export default new Router({
                     path: '/ceshi',
                     title: '测试',
                     miniTitle: '测试',
-                    iconType: 'hui-icon-ziyuan30',
+                    iconType: 'hui-icon-ziyuan31',
                     component: ceshi
                 }
             ]

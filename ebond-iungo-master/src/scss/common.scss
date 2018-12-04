@@ -647,7 +647,9 @@
           /*margin-top:15px;*/
           bottom: -15px;
           left: 0px;
-            .el-button .el-icon-check{
+            .el-button .el-icon-check,
+            .el-button .el-icon-view
+            {
                 font-size:20px;
                 margin:0px 15px;
             }

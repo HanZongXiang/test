@@ -269,9 +269,9 @@ export default {
       ceshi () {
           alert('测试成功')
       },
-      liClick(){
-          alert('1')
-      },
+      // liClick(){
+      //     alert('1')
+      // },
     //弹窗事件
     openAlert () {
       this.$alert('这是一段提示信息', '', {

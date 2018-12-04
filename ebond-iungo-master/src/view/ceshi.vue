@@ -15,6 +15,12 @@
         <el-form>
         <input type="text" autocomplete="off" class="el-input__inner" @keyup.enter = "handle4($event,'测试4keyup')" @onkeydown = "handle4(event,'测试4onkeydown')">
         </el-form>
+        <el-button size="mini">
+            <label for="upload" style="display:block;width: 49px;height: 25px;line-height: 25px;">
+                <i class="el-icon-view"></i>
+                <input type="file" accept="image/*" capture="camera" style="display:none" id="upload">
+            </label>
+        </el-button>
     </div>
 
 </template>
@@ -31,10 +37,10 @@ export default {
     }
   },
   mounted () {
-
   },
   methods: {
       handle1(val){
+          console.log(this.$chatSocket)
           alert(val)
       },
       handle2(val){

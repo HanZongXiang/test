@@ -28,7 +28,7 @@
             <!--im 聊天部分-->
             <div class="chart-imDialogue" :style="{height: imDialogueHei+'px'}" ref="imDialogueCartion">
                 <div class="medical-table">
-                    <div class="chart-nowTime"><el-button type="info" size="mini" round disabled>03:22</el-button></div>
+                    <div class="chart-nowTime"><el-button type="info" size="mini" round disabled>{{new Date().toLocaleTimeString().slice(2,6)}}</el-button></div>
                     <ul class="medical-table_list">
                         <li>
                             <div class="medical-list_flex" :class=" personDetail.isRead ? 'medical-list_read' : 'medical-list_unread' ">
@@ -63,11 +63,11 @@
                     </li>
                 </ul>
             </div>
-            <!--im 发生消息部分-->
+            <!--im 发送消息部分-->
             <div class="chart-imSend" ref="imSend">
                 <!--<el-form>-->
                     <div class="el-input">
-                        <input type="text" autocomplete="off" v-model="imSendMes" placeholder="请输入内容" class="el-input__inner">
+                        <input type="text" autocomplete="off" v-model="imSendMes" placeholder="请输入内容" class="el-input__inner" @keyup.enter="sendMsg">
                     </div>
                 <!--</el-form>-->
                 <el-button type="success" class="imSend-botton" @click.native="sendMsg">发送</el-button>
@@ -80,7 +80,7 @@
             <!--<el-button @click="closeVideo">关闭视频</el-button>-->
             <!--<el-button @click="openVideo">打开视频</el-button>-->
             <!--<el-button @click="stopWs">断开当前视频</el-button>-->
-            <!--<el-button @click="showVideo">显示视频</el-button>-->
+            <!--<el-button @click="showVideo">显示视频</el-button> -->
         </div>
         <!--打开视频通话部分-->
         <div class="chart-video" :class="[isVideoState?'':'chart-editPhoto']" v-show = "isShowVideo">
@@ -711,7 +711,7 @@
              */
             boardroomnum () {
                 APINOTI.boardroomnum().then(res=>{
-                    console.log(res)
+                    console.log("左侧医生列表：",res)
                     res.forEach((v,i)=>{
                         v.img =  require("./../assets/logo.png")
                     })
@@ -785,13 +785,13 @@
                 if (this.tabNum == index) {
                     return;
                 }
-                // let params = {
-                //     "to_practitioner" : item.to_practitioner,
-                //     "from_practitioner":item.from_practitioner
-                // }
-                // APINOTI.creatboardroomnum(params).then(res=>{
-                //     console.log(res)
-                // })
+                let params = {
+                    "to_practitioner" : item.to_practitioner,
+                    "from_practitioner":item.from_practitioner
+                }
+                APINOTI.creatboardroomnum(params).then(res=>{
+                    console.log('生成房间：',res)
+                })
 
                 this.tabNum = index
                 this.personDetail = item;
@@ -867,20 +867,20 @@
             //     },function ( error ){
             //         console.error( error )
             //     });
-            //     //初始化完成后调用进房接口
+                //初始化完成后调用进房接口
             //     this.RTC.enterRoom({
             //         roomid : roomid
             //     },function(){
             //         //进房成功，音视频推流
-            //
+            
             //         self.RTC.startRTC({
             //             role : "user",   //画面设定的配置集名 （见控制台 - 画面设定 )
             //             stream: stream
             //         });
             //     },function(){
-            //
+            
             //     });
-            //
+            
             //     //本地流 新增
             //     this.RTC.on("onLocalStreamAdd", function(data){
             //         if( data && data.stream){
@@ -900,7 +900,7 @@
             // }
         },
         filters:{
-             formatDateTime(inputTime){
+            formatDateTime(inputTime){
                 var date = new Date(inputTime);
                 var y = date.getFullYear();
                 var m = date.getMonth() + 1;
@@ -950,7 +950,7 @@
                 }
                 .chart-imTitle_button{
                     float: right;
-                    display: inline-block;
+                    // display: inline-block;
                     vertical-align: middle;
                     font-size: 0px;
                     margin-top:8px;

@@ -18,5 +18,8 @@ export default {
   userprofile: params => {
     return API.GET('/auth_api/userprofile', params)
   },
-
+  // 获取oss代理信息
+  ossClient: params => {
+    return API.GET('/auth_api/client', params)
+  }
 }
