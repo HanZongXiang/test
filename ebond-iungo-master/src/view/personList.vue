@@ -253,31 +253,27 @@
                                         <el-col :span="24">
                                             <div class="personList-formBox_btn">
                                                 <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('menbasicCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                                <el-button size="mini">
-                                                    <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
-                                                        <i class="el-icon-view"></i>
-                                                        <input type="file" accept="image/*" capture="camera" style="display:none" id="upload" ref="input" @change="upload(fBoxNum)">
-                                                    </label>
+                                                <el-button size="mini" icon="el-icon-view">
                                                 </el-button>
+                                                <input type="file" accept="image/*" capture="camera" id="upload" ref="input" @change="upload('menbasicCheckData', fBox, itemNum, fBoxNum)" style="position: relative;top: 0px;right: 60px;width: 54px; height: 23px;opacity: 0;">
                                             </div>
-                                            <el-dialog
-                                                title="提示"
-                                                :visible="centerDialogVisible"
-                                                width="30%"
-                                                center>
-                                                <span>需要注意的是内容是默认不居中的</span>
-                                                <img src="" alt="" ref="img">
-                                                <span slot="footer" class="dialog-footer">
-                                                    <el-button @click="centerDialogVisible = false">取 消</el-button>
-                                                    <el-button type="primary" @click="centerDialogVisible = false">确 定</el-button>
-                                                </span>
-                                                </el-dialog>
+                                            
                                         </el-col>
                                     </el-row>
                                 </el-form>
                             </div>
                             
                         </swiper-slide>
+                        <el-dialog
+                            title="提示"
+                            :visible="centerDialogVisible"
+                            width="30%"
+                            center>
+                            <span slot="footer" class="dialog-footer">
+                                <el-button @click="centerDialogVisible = false">取 消</el-button>
+                                <el-button type="primary" @click="centerDialogVisible = false">确 定</el-button>
+                            </span>
+                        </el-dialog>
                         <div class="swiper-pagination" slot="pagination"></div>
                     </swiper>
                <!-- </div>-->
@@ -355,12 +351,9 @@
                                     <el-col :span="24">
                                         <div class="personList-formBox_btn">
                                             <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('menReproductiveCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                            <el-button size="mini">
-                                                <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
-                                                    <i class="el-icon-view"></i>
-                                                    <input type="file" accept="image/*" capture="camera" style="display:none" id="upload" @change="upload">
-                                                </label>
+                                            <el-button size="mini" icon="el-icon-view">
                                             </el-button>
+                                            <input type="file" accept="image/*" capture="camera" id="upload" ref="input" @change="upload('menbasicCheckData', fBox, itemNum, fBoxNum)" style="position: relative;top: 0px;right: 60px;width: 54px; height: 23px;opacity: 0;">
                                         </div>
                                     </el-col>
                                 </el-row>
@@ -436,12 +429,9 @@
                                     <el-col :span="24">
                                         <div class="personList-formBox_btn">
                                             <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('womenbasicCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                            <el-button size="mini">
-                                                <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
-                                                    <i class="el-icon-view"></i>
-                                                    <input type="file" accept="image/*" capture="camera" style="display:none" id="upload">
-                                                </label>
+                                            <el-button size="mini" icon="el-icon-view">
                                             </el-button>
+                                            <input type="file" accept="image/*" capture="camera" id="upload" ref="input" @change="upload('menbasicCheckData', fBox, itemNum, fBoxNum)" style="position: relative;top: 0px;right: 60px;width: 54px; height: 23px;opacity: 0;">
                                         </div>
                                     </el-col>
                                 </el-row>
@@ -525,12 +515,9 @@
                                     <el-col :span="24">
                                         <div class="personList-formBox_btn">
                                             <el-button type="primary" size="mini" icon="el-icon-check" @click="submitBasicCheck('womenReproductiveCheckData', fBox, itemNum, fBoxNum)"></el-button>
-                                            <el-button size="mini">
-                                                <label for="upload" style="display:block;width: 24px;height: 14px;line-height: 14px;">
-                                                    <i class="el-icon-view"></i>
-                                                    <input type="file" accept="image/*" capture="camera" style="display:none" id="upload">
-                                                </label>
+                                            <el-button size="mini" icon="el-icon-view">
                                             </el-button>
+                                            <input type="file" accept="image/*" capture="camera" id="upload" ref="input" @change="upload('menbasicCheckData', fBox, itemNum, fBoxNum)" style="position: relative;top: 0px;right: 60px;width: 54px; height: 23px;opacity: 0;">
                                         </div>
                                     </el-col>
                                 </el-row>
@@ -1343,9 +1330,8 @@ export default {
   mounted () {
   },
   methods: {
-    upload (index) {
-      var input = this.$refs.input;
-      console.log(index)
+    upload (dataPageName, fBox, itemNum,fBoxNum) { // dataPageName 栏目的字段名称 fBox  单个表单集合  itemNum 页码  fBoxNum 单页的form序号
+        console.log(e.target)
     },
       openCamera () {},
     //  添加新患者
@@ -1664,6 +1650,8 @@ export default {
     },
     //    基础病要表单提交
     submitBasicCheck (dataPageName, fBox, itemNum,fBoxNum) { // dataPageName 栏目的字段名称 fBox  单个表单集合  itemNum 页码  fBoxNum 单页的form序号
+    //   console.log(itemNum, fBoxNum)
+    //     return
       let formName = fBox.formName
       let self = this
       let planitem = []
@@ -1674,6 +1662,7 @@ export default {
         }
         planitem.push(newJsonPlanitem)
       }
+      console.log(planitem)
       let checkParams = {
         serial_no: self[dataPageName][itemNum][fBoxNum].serial_no, // #序列列号
         name: self[dataPageName][itemNum][fBoxNum].titleName, // #项⽬目名称

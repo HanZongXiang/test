@@ -761,10 +761,9 @@
                 if(this.imSendMes == ''){
                     return
                 }
-                let newMes = {isSelf:true,title:this.imSendMes};
-                this.imDialogue.push(newMes);
-                console.log('11s')
-                this.ticSdk.sendTextMessage(this.imSendMes, this.imMsg.common.toUser);
+                // let newMes = {isSelf:true,title:this.imSendMes};
+                // this.imDialogue.push(newMes);
+                this.ticSdk.sendTextMessage(this.imMsg.common.data, this.imMsg.common.toUser);
                 this.imSendMes = '';
             },
             /**
