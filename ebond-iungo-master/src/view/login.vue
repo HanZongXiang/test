@@ -135,8 +135,8 @@ export default {
       imageUrl: require('./../assets/logo.png'),
       //    登陆
       loginForm: {
-        username: '',
-        password: ''
+        username: 'wang',
+        password: '1234'
       },
       rulesLoginForm: {
         username: [

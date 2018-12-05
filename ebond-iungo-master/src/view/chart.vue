@@ -101,8 +101,8 @@
                 <!--工具部分-->
                 <div class="edit-photoTool">
                     <i class="edit-photoTool_pencil"></i><br>
-                    <i class="edit-photoTool_eraser"></i><br>
-                    <i class="edit-photoTool_color tool-colorRed " :class="{'edit-photoTool_active': toolPencilType}" @click="toolPencilType = true"></i><br>
+                    <i class="edit-photoTool_eraser" @click="setType(BoardSDK.DRAW_TYPE.ERASER)"></i><br>
+                    <i class="edit-photoTool_color tool-colorRed " :class="{'edit-photoTool_active': toolPencilType}" @click="setRedPencil()"></i><br>
                     <i class="edit-photoTool_color tool-colorCyan" :class="{'edit-photoTool_active': !toolPencilType}" @click="toolPencilType = false"></i>
                 </div>
             </div>
@@ -134,19 +134,20 @@
     // WebRTC SDK
     // require('../WebWX/webRTCAPI.min')
     // import webRTCAPI from '../WebWX/webRTCAPI.min'
-    //<!-- WebIM SDK -->
+    // <!-- WebIM SDK -->
     // require('../WebWX/webim.min.js')
-    //<!-- 白板SDK -->
+    // <!-- 白板SDK -->
     // require('../WebWX/board_sdk.mini.js')
-    //<!-- COS SDK -->
+    // <!-- COS SDK -->
     // require('../WebWX/cos.mini.js')
     // import cosMini from '../WebWX/cos.mini.js'
-    //<!-- TIC SDK -->
+    // <!-- TIC SDK -->
     // require('../WebWX/TICSDK.mini.js')
     // import TICSDK from '../WebWX/TICSDK.mini.js'
-    require('../WebWX/OSS.min.js')
+    // require('../WebWX/OSS.min.js')
     import slideTab from '../components/slideTab/index.vue'
     import APINOTI from '@/api/api_noti.js'
+    import axios from 'axios';
     export default {
         name: 'chart',
         props: {
@@ -192,17 +193,17 @@
                     pinfo: {}
                 },//人员详情信息
                 imDialogue: [
-                    {isSelf:true,title:'这是一个好东西啊1'},
-                    {isSelf:false,title:'这是一个好东西啊2'},
-                    {isSelf:true,title:'这是一个好这是一个好东西啊这是一个好东西啊这是一个好东西啊这是一个好东西啊东西啊'},
-                    {isSelf:false,title:'这是一个好东西啊'},
-                    {isSelf:true,title:'这是一个好东西啊'},
-                    {isSelf:false,title:'这是一个好东西啊'},
-                    {isSelf:false,title:'这是一个好东西啊',isImg: true,img: require("./../assets/logo.png")},
-                    {isSelf:true,title:'这是一个好东西啊'},
-                    {isSelf:true,title:'这是一个好东西啊'},
-                    {isSelf:false,title:'这是一个好东西啊'},
-                    {isSelf:true,title:'这是一个好东西啊'},
+                    // {isSelf:true,title:'这是一个好东西啊1'},
+                    // {isSelf:false,title:'这是一个好东西啊2'},
+                    // {isSelf:true,title:'这是一个好这是一个好东西啊这是一个好东西啊这是一个好东西啊这是一个好东西啊东西啊'},
+                    // {isSelf:false,title:'这是一个好东西啊'},
+                    // {isSelf:true,title:'这是一个好东西啊'},
+                    // {isSelf:false,title:'这是一个好东西啊'},
+                    // {isSelf:false,title:'这是一个好东西啊',isImg: true,img: require("./../assets/logo.png")},
+                    // {isSelf:true,title:'这是一个好东西啊'},
+                    // {isSelf:true,title:'这是一个好东西啊'},
+                    // {isSelf:false,title:'这是一个好东西啊'},
+                    // {isSelf:true,title:'这是一个好东西啊'},
                 ],
                 isVideoState: true,//是否为视频状态  false为编辑图片状态
                 videoMes:[
@@ -230,7 +231,8 @@
                 sdkAppId: '1400159415',   //  腾讯sdkAppId
                 // userSig: '',    //用户签名
                 nickName: sessionStorage.getItem('IIC_NICKNAME'), //用户名称+userID
-                roomID:'',
+                userPK: 0,
+                roomID: 4,
                 ticSdk: null,
                 isFirstConnected: 0, //是否是第一次链接
                 enableCamera: true,
@@ -283,14 +285,14 @@
                     closeLocalMedia: true,
                     audio: true,
                     video: true,
-                    role: null
+                    role: 'user'
                 },
 
                 boardConfig: {
-                    id: null,
-                    canDraw: null,
-                    color: null,
-                    globalBackgroundColor: null
+                    id: 'paint_box',
+                    canDraw: 1,  // 1能画，0不能画
+                    color: '#ff0000',
+                    globalBackgroundColor: '#ffffff'
                 },
 
                 cosConfig: {
@@ -308,12 +310,15 @@
                     bucket: null
                 },
 
-                endpoint: '',
-                bucket: '',
+                endpoint: 'oss-cn-qingdao.aliyuncs.com', // OSS节点,
+                bucket: 'ebond-oss-chatpic01', // OSS根目录,
 
                 uploadUrl: '',
-                jwt:'',
-                remoteVideos: {}
+                jwt: localStorage.getItem('token'),
+                remoteVideos: {},
+                // endPoint: 'oss-cn-qingdao.aliyuncs.com', // OSS节点
+                // uploadBucket: 'ebond-oss-chatpic01', // OSS根目录
+                uploadDate: new Date()
             }
         },
         mounted () {
@@ -322,7 +327,8 @@
             /*im 聊天部分高度设置*/
             this.imDialogueHei = this.screenHeight - this.$refs.imSend.offsetHeight - this.$refs.imTitle.offsetHeight;
 
-            this.getTencentConf()
+            this.getTencentConf();
+            this.heartBeat();
             // this.notification()//消息推送
             this.boardroomnum()
         },
@@ -335,7 +341,7 @@
              */
             notification(){
                 let baseUrl = '47.94.6.105:80';
-                // alert(this.practitionerId)
+                console.log('practitionerId' + this.practitionerId)
                 this.chatSocket = new WebSocket(`ws://47.94.6.105:80/ws/notification/${this.practitionerId}/`);
                 this.chatSocket.onopen = this.websocketopen;
                 this.chatSocket.onmessage = this.websocketonmessage;
@@ -360,21 +366,92 @@
              * 设置医生的默认信息
              */
             getTencentConf () {
-                this.nickName = '用户昵称' + this.userID
-                this.loginConfig = {
-                    identifier: this.userID,
-                    identifierNick: '用户昵称' + this.userID,
-                    userSig: this.userSig,
-                    sdkAppId: this.sdkAppId,
-                    accountType: 1
-                };
-                console.log(this.loginConfig);
-                this.ticSdk = new TICSDK();
-                this.ticSdk.init();
-                this.initEvent();
-                this.ticSdk.login(this.loginConfig);
+                var self = this;
+                axios.get('http://47.94.6.105:80/auth_api/userprofile/', {
+                    headers: {
+                        'Authorization': 'JWT' + self.jwt
+                    }
+                }).then(function (response) {
+                    console.log('access profile');
+                    let data = response.data;
+                    // self.userID = data[0]['username'];
+                    // self.userSig = data[0]['token'];
+                    self.userPK = data[0]['id'];
+                    self.nickName = '用户昵称' + self.userID;
+                    self.loginConfig = {
+                        identifier: self.userID,
+                        identifierNick: '用户昵称' + self.userID,
+                        userSig: self.userSig,
+                        sdkAppId: self.sdkAppId,
+                        accountType: 1
+                    };
+                    console.log(self.loginConfig);
+                    self.ticSdk = new TICSDK();
+                    self.ticSdk.init();
+                    self.initEvent();
+                    self.ticSdk.login(self.loginConfig);
+                    self.setSocket();
+                    console.log('websocket init')
+                }).catch(function (error) {
+                    console.log(error)
+                })
+            },
 
-                this.step = 'second';
+            heartBeat() {
+                var self = this;
+                this.setOSS();
+                setInterval(function () {
+                    self.setOSS();
+                },3000 * 1000);
+            },
+
+            setOSS() {
+                var self = this;
+                axios.get('http://47.94.6.105:80/auth_api/client/', {
+                    headers: {
+                        'Authorization': 'JWT' + self.jwt
+                    }
+                }).then(function (response) {
+                    console.log('access client');
+                    let data = response.data,
+                        uid = data[0]['uid'],
+                        ukey = data[0]['ukey'],
+                        token = data[0]['token'];
+                    self.ossConfig = {
+                        accessKeyId: uid,
+                        accessKeySecret: ukey,
+                        stsToken: token,
+                        endpoint: self.endpoint,
+                        bucket: self.bucket
+                    };
+                    self.client = new OSS(self.ossConfig);
+                    console.log(self.client == null);
+                }).catch(function (error) {
+                    console.log(error)
+                })
+            },
+            setSocket() {
+                var id = this.userPK;
+                this.chatSocket = new WebSocket('ws://47.94.6.105:80/ws/notification/' + id + '/');
+                this.socketEvent();
+                console.log('websocket init successfully')
+            },
+            socketEvent() {
+                var socket = this.chatSocket;
+                socket.onmessage = function (e) {
+                    var data = JSON.parse(e.data);
+                    var message = data['message'];
+                    console.log('receive success')
+
+                    if (message.search('$转诊消息') != -1) {
+                        console.log('转诊消息，请做相应操作')
+                    } else if (message.search('$聊天申请') != -1) {
+                        console.log('聊天申请，请做相应操作')
+                    }
+                };
+                socket.onclose = function (e) {
+                    console.error('chatsocket closed unexpectedly')
+                }
             },
             /**
              * 初始化链接
@@ -572,7 +649,7 @@
 
                 // 接收到普通消息
                 this.ticSdk.on(TICSDK.CONSTANT.EVENT.IM.MSG_NOTIFY, msgs => {
-                    alert(msgs,'消息提示')
+                    console.log(msgs,'消息提示')
                     console.log('TICSDK.CONSTANT.EVENT.IM.MSG_NOTIFY');
                 });
 
@@ -706,12 +783,15 @@
                 alert('Error:' + title)
                 console.log('Error:' + title)
             },
+            showTip(title, time) {
+                console.log('Show:'+ title)
+            },
             /**
              * 获取左侧医生好友列表
              */
             boardroomnum () {
                 APINOTI.boardroomnum().then(res=>{
-                    console.log("左侧医生列表：",res)
+                    // console.log("左侧医生列表：",res)
                     res.forEach((v,i)=>{
                         v.img =  require("./../assets/logo.png")
                     })
@@ -757,15 +837,15 @@
             /**
              *  im 发送普通文本消息
              */
-            sendMsg () {
-                if(this.imSendMes == ''){
-                    return
-                }
-                // let newMes = {isSelf:true,title:this.imSendMes};
-                // this.imDialogue.push(newMes);
-                this.ticSdk.sendTextMessage(this.imMsg.common.data, this.imMsg.common.toUser);
-                this.imSendMes = '';
-            },
+            // sendMsg () {
+            //     if(this.imSendMes == ''){
+            //         return
+            //     }
+            //     // let newMes = {isSelf:true,title:this.imSendMes};
+            //     // this.imDialogue.push(newMes);
+            //     this.ticSdk.sendTextMessage(this.imMsg.common.data, this.imMsg.common.toUser);
+            //     this.imSendMes = '';
+            // },
             /**
              * 跳转到滚动跳底部
              */
@@ -813,14 +893,298 @@
                     params.content = '离线消息'
                 }
 
-                APINOTI.noterequest(params).then(res=>{
-                    console.log(res)
-                })
+                // APINOTI.noterequest(params).then(res=>{
+                //     console.log(res)
+                // })
 
                 // document.querySelector("#localVideo").style.width = this.screenWidth +'px'
                 // document.querySelector("#localVideo").style.height = this.screenHeight +'px'
                 // this.videoOnline();
                 this.dropImg = this.videoMes[0].photo;
+                var self = this;
+                if(self.isFirstConnected == 1) {
+                    console.log('create room');
+                    self.createRoom(self.roomID)
+                } else {
+                    console.log('join room');
+                    self.joinRoom(self.roomID)
+                };
+                self.step = 'third'
+            },
+
+            createRoom(roomnum) {
+                this.ticSdk.createClassroom({
+                    roomID: roomnum,
+                    roomType: 'Public'
+                });
+                this.ticSdk.on(TICSDK.CONSTANT.EVENT.TIC.CREATE_CLASS_ROOM_SUCC, res => {
+                    console.log('TICSDK.CONSTANT.EVENT.TIC.CREATE_CLASS_ROOM_SUCC');
+                    this.ticSdk.joinClassroom(roomnum, this.webrtcConfig, this.boardConfig);
+                });
+            },
+
+            joinRoom(roomnum) {
+                this.ticSdk.joinClassroom(roomnum, this.webrtcConfig, this.boardConfig);
+                console.log('joinRoom successfully')
+            },
+
+            streaming() {
+                this.ticSdk.on(TICSDK.CONSTANT.EVENT.TIC.JOIN_CLASS_ROOM_SUCC, data => {
+                    window.board = this.ticSdk.getBoardInstance();
+                    window.WebRTC = this.ticSdk.getWebRTCInstance();
+
+                    // 主动推流
+                    if (this.pushModel === 1) {
+                        
+                    }
+                });
+
+                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.LOCAL_STREAM_ADD, data => {
+                    document.getElementById('localVideo').srcObject = data.stream;
+                    this.isPushing = 1;
+                    console.log('WebRTC接收到本地流')
+                });
+
+                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.REMOTE_STREAM_UPDATE, data => {
+                    this.$set(this.remoteVideos, data.videoId, data);
+                    this.$nextTick(() => {
+                        if (document.getElementById(data.videoId)) {
+                            document.getElementById(data.videoId).srcObject = data.stream;
+                        }
+                    });
+                    console.log('WebRTC接收到远端流');
+                });
+
+                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.REMOTE_STREAM_REMOVE, data => {
+                    this.$delete(this.remoteVideos, data.videoId);
+                    this.stopPush();
+                    console.log('WebRTC远端流断开');
+                });
+            },
+            
+            ossUpload: function (id) {
+                var file = document.getElementById(id).files[0];
+                var index = file.name.lastIndexOf('.');
+                var key = 'chat' + this.uploadDate.toLocaleDateString() + '/' +this.userID + '-' + (new Date()) + file.name.substring(index);
+                var filesize = file.size;
+
+                if (file && /\.(bmp|jpg|jpeg|png|gif|webp|svg|psd|ai)$/i.test(file.name)) {
+                    var self = this;
+                    this.showTip('图片正在上传，请等待');
+                    this.client.put(Key, file).then(function (result) {
+                        console.log(result);
+                        console.log('upload success')
+                    }).catch(function (error) {
+                        console.log(error)
+                    });
+                }
+            },
+
+            ocr: function (id) {
+                var file = document.getElementById(id).files[0];
+                var index = file.name.lastIndexOf('.');
+                var Key = 'ocr' + this.uploadDate.toLocaleDateString() + '/' +this.userID + '-' + (new Date()) +file.name.substring(index);
+                var filesize = file.size;
+                var ratio = filesize / 4000000
+
+                if (file && /\.(bmp|jpg|jpeg|png|gif|webp|svg|psd|ai)$/.test(file.name)) {
+                    var self = this;
+                    this.client.put(Key, file).then(function (result) {
+                        console.log(result);
+                        if (ratio <= 1.0) {
+                            console.log('leq');
+                            self.uploadUrl = self.client.signatureUrl(Key, {
+                                expires: 100
+                            })
+                        } else {
+                            percent = Math.floor(100 / ratio)
+                            console.log('image/resize,p_' + percent)
+                        };
+                        console.log(self.uploadUrl)
+                    }).catch(function (error) {
+                        console.log(error)
+                    })
+                } else {
+                    console.log('需上传图片格式');
+                }
+            },
+
+            // 启动摄像头推流
+            startRTC() {
+                // 获取WebRTC实例
+                console.log('startWebRTC', this.isPushing, window.WebRTC == null);
+
+                var WebRTC = this.ticSdk.getWebRTCInstance();
+                WebRTC.getLocalStream({
+                    audio: true,
+                    video: true,
+                    attributes: {
+                        width: 640,
+                        height: 480
+                    }
+                }, data => {
+                    this.isPushCamera = true;
+                    if (WebRTC.global.localStream) {
+                        WebRTC.updateStream({
+                            role: 'screen',
+                            stream: data.stream
+                        }, () => {
+                            console.log('更新流成功')
+                        }, (error) => {
+                            this.showErrorTip(`更新流失败, ${error}`)
+                        });
+                    } else {
+                        WebRTC.startRTC({
+                            stream: data.stream,
+                            role: 'user'
+                        }, success => {
+
+                        }, error => {
+                            this.showErrorTip(`推流失败，${error}`);
+                        });
+                    }
+                }, (error) => {
+                    this.showErrorTip(`获取本地流失败，${JSON.stringify(error)}`);
+                    console.log(JSON.stringify(error))
+                });
+            },
+            
+            stopPush() {
+                var WebRTC = this.ticSdk.getWebRTCInstance()
+                WebRTC.stopRTC({}, () => {
+                    this.isPushing = 0;
+                    document.getElementById('localVideo').srcObject = null
+                });
+            },
+            /**
+             * 设置全局背景色
+             * @param {*} color Hex 色值，如 #ff00ff
+             */
+            setGlobalColor(color) {
+                this.ticSdk.getBoardInstance().setGlobalBackgroundColor(color);
+            },
+
+            /**
+             * 设置当前页背景色
+             * @param {*} color Hex 色值，如 #ff00ff
+             */
+            setBgColor(color) {
+                this.ticSdk.getBoardInstance().setBackgroundColor(color);
+            },
+
+            /**
+             * 设置涂鸦颜色
+             * @param {*} color Hex 色值，如 #ff00ff
+             */
+            setColor(color) {
+                this.ticSdk.getBoardInstance().setColor(color);
+            },
+
+            setRedPencil() {
+                this.toolPencilType = true;
+                this.setColor('#ff0b0b')
+            },
+
+            setCyanPencil() {
+                this.toolPencilType = false;
+                this.setColor('#11cbeb')
+            },
+
+            /**
+             * 设置涂鸦类型
+             * @param {*} type 
+             */
+            setType(type) {
+                this.ticSdk.getBoardInstance().setType(type);
+            },
+
+            /**
+             * 设置涂鸦粗细
+             * @param {*} num 
+             */
+            setThin(num) {
+                this.ticSdk.getBoardInstance().setThin(num);
+                this.ticSdk.getBoardInstance().setRadius(num);
+            },
+
+            /**
+             * 清空当前页涂鸦(保留背景色/图片)
+             */
+            clearDraws() {
+            this.ticSdk.getBoardInstance().clearDraws();
+            },
+
+            /**
+             * 清空当前页涂鸦 + 背景色/图片
+             */
+            clear() {
+                this.ticSdk.getBoardInstance().clear();
+            },
+
+            /**
+             * 清除全局背景色
+             */
+            clearGlobal() {
+                this.ticSdk.getBoardInstance().clearGlobalBgColor();
+            },
+
+            /**
+             * 回退
+             */
+            revert() {
+                this.ticSdk.getBoardInstance().undo();
+            },
+
+            /**
+             * 恢复
+             */
+            process() {
+                this.ticSdk.getBoardInstance().redo();
+            },
+
+            /**
+             * 上传文件
+             */
+            uploadFile() {
+                var file = document.getElementById('file_input').files[0];
+                if (file && /\.(bmp|jpg|jpeg|png|gif|webp|svg|psd|ai)$/i.test(file.name)) {
+                    this.showTip('图片正在上传，请等待');
+                    this.ticSdk.addImgFile(file, (total, data) => {
+                    this.showTip('图片上传成功');
+                    document.getElementById('file_input').value = '';
+                    }, (err) => {
+                    console.error(err);
+                    this.showErrorTip('图片上传失败，请重试');
+                    document.getElementById('file_input').value = '';
+                    });
+                } else {
+                    this.showTip('文件正在上传，请等待');
+                    this.ticSdk.addFile(file, (total, data) => {
+                    this.showTip('文件上传成功，共' + total + '页');
+                    document.getElementById('file_input').value = '';
+                    }, (err) => {
+                    console.error(err);
+                    this.showErrorTip('文件上传失败，请重试');
+                    document.getElementById('file_input').value = '';
+                    });
+                }
+            },
+
+            /**
+             * 白板事件回调处理
+             * @param {*} data 
+             */
+            proBoardData(data) {
+                this.boardData.data.current = data.current;
+                this.boardData.data.list = data.list;
+                this.boardData.page = {
+                    current: this.boardData.data.list.indexOf(data.current) + 1,
+                    total: this.boardData.data.list.length
+                }
+            },
+            // 退出房间
+            quit() {
+                this.ticSdk.quitClassroom();
             },
             // closeAudio () {
             //     alert(1)
@@ -838,6 +1202,7 @@
             stopWs (){
                 // this.RTC.global.websocket.close();
                 this.isShowVideo=false;
+                this.quit()
             },
             // videoOnline () {
             //     var roomid= 900099;
@@ -898,6 +1263,9 @@
             //     })
             // }
         },
+        // beforeDestroy() {
+        //     this.quit()
+        // },
         filters:{
             formatDateTime(inputTime){
                 var date = new Date(inputTime);

@@ -128,7 +128,7 @@ export default {
 
     this.userProfile();
     // this.practitionersDetail();
-    this.heartBeat()
+    // this.heartBeat()
   },
   methods: {
     //  编辑提交个人信息
@@ -157,35 +157,35 @@ export default {
       })
     },
 
-    heartBeat() {
-      var self = this;
-      this.setOSS();
-      setInterval(function () {
-        self.setOSS();
-        console.log(2)
-      },3000 * 1000)
-    },
+    // heartBeat() {
+    //   var self = this;
+    //   this.setOSS();
+    //   setInterval(function () {
+    //     self.setOSS();
+    //     console.log(2)
+    //   },3000 * 1000)
+    // },
 
-    setOSS() {
-      var self = this;
-      APIUSER.ossClient().then((res) => {
-        console.log('res: ',res)
-        let data = res[0];
-        // console.log(data)
-        var uid = data["uid"];
-        var ukey = data["ukey"];
-        var token = data["token"];
-        var ossConfig = {
-          accessKeyId: uid,
-          accessKeySecret: ukey,
-          stsToken: token,
-          endpoint: self.endpoint,
-          bucket: self.bucket
-        };
-        self.ossClient = new OSS(ossConfig);
-        console.log('ossClient: ' , self.ossClient)
-      })
-    },
+    // setOSS() {
+    //   var self = this;
+    //   APIUSER.ossClient().then((res) => {
+    //     console.log('res: ',res)
+    //     let data = res[0];
+    //     // console.log(data)
+    //     var uid = data["uid"];
+    //     var ukey = data["ukey"];
+    //     var token = data["token"];
+    //     var ossConfig = {
+    //       accessKeyId: uid,
+    //       accessKeySecret: ukey,
+    //       stsToken: token,
+    //       endpoint: self.endpoint,
+    //       bucket: self.bucket
+    //     };
+    //     self.ossClient = new OSS(ossConfig);
+    //     console.log('ossClient: ' , self.ossClient)
+    //   })
+    // },
     //  获取用户信息
     userProfile () {
       APIUSER.userprofile().then((res) => {
