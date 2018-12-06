@@ -8,8 +8,8 @@ const store = new Vuex.Store({
         ossClient: '',
         notificationSocket: ''
     },
-    mutations: {},
-    actions: {}
+    // mutations: {},
+    // actions: {}
 })
 
 export default store
