@@ -94,16 +94,16 @@
                 <i class="el-icon-edit close-video" @click="stopWs"></i>
             </div>
             <!--修改选中的图片-->
-            <div class="edit-photo_content" v-if="!isVideoState">
-                <drop class="edit-photo_drop" @arrive="arrive" @away="away" name="imgDrag">
+            <div class="edit-photo_content" v-show="!isVideoState">
+                <drop class="edit-photo_drop" @arrive="arrive" @away="away" name="imgDrag" id="paint_box">
                     <img class="edit-photo_dropImg" :src="dropImg">
                 </drop>
                 <!--工具部分-->
                 <div class="edit-photoTool">
-                    <i class="edit-photoTool_pencil"></i><br>
-                    <i class="edit-photoTool_eraser" @click="setType(BoardSDK.DRAW_TYPE.ERASER)"></i><br>
+                    <i class="edit-photoTool_pencil" @click="switchPolyline()"></i><br>
+                    <i class="edit-photoTool_eraser" @click="switchEraser()"></i><br>
                     <i class="edit-photoTool_color tool-colorRed " :class="{'edit-photoTool_active': toolPencilType}" @click="setRedPencil()"></i><br>
-                    <i class="edit-photoTool_color tool-colorCyan" :class="{'edit-photoTool_active': !toolPencilType}" @click="toolPencilType = false"></i>
+                    <i class="edit-photoTool_color tool-colorCyan" :class="{'edit-photoTool_active': !toolPencilType}" @click="setCyanPencil()"></i>
                 </div>
             </div>
             <!--视频时右侧聊天部分-->
@@ -122,7 +122,11 @@
                     <div class="el-input el-input--mini mes-flex">
                         <input type="text" autocomplete="off" placeholder="请输入内容" class="el-input__inner">
                     </div>
-                    <i class="el-icon-picture"></i>
+                    <label for="fileInput">
+                        <input type="file" id="fileInput" style="display: none" @change="ossUpload('fileInput')" accept="image/*, application/pdf, application/msword, application/vnd.ms-powerpoint, application/vnd.ms-excel">
+                        <i class="el-icon-picture" style="margin-left: 10px;color: #fff;font-size: 33px;"></i>
+                    </label>
+                    
                 </div>
             </div>
         </div>
@@ -131,22 +135,9 @@
 </template>
 
 <script>
-    // WebRTC SDK
-    // require('../WebWX/webRTCAPI.min')
-    // import webRTCAPI from '../WebWX/webRTCAPI.min'
-    // <!-- WebIM SDK -->
-    // require('../WebWX/webim.min.js')
-    // <!-- 白板SDK -->
-    // require('../WebWX/board_sdk.mini.js')
-    // <!-- COS SDK -->
-    // require('../WebWX/cos.mini.js')
-    // import cosMini from '../WebWX/cos.mini.js'
-    // <!-- TIC SDK -->
-    // require('../WebWX/TICSDK.mini.js')
-    // import TICSDK from '../WebWX/TICSDK.mini.js'
-    // require('../WebWX/OSS.min.js')
     import slideTab from '../components/slideTab/index.vue'
     import APINOTI from '@/api/api_noti.js'
+    import APIUSER from '@/api/api_user.js'
     import axios from 'axios';
     export default {
         name: 'chart',
@@ -175,15 +166,7 @@
             return {
                 //人元列表
                 tabNum: null,
-                personlistData: [
-                    // {img: require("./../assets/logo.png"), personName: '刘奇', downHospital: '北医三院', downDoctor: '王主任', personSex: 0, personNumber: '00010220', mesNum: 0, finish: 3, unfinish: 4 ,mesType: 1,time: '2018.01.01',isRead: true},
-                    // {img: require("./../assets/logo.png"), personName: '刘1', downHospital: '北医三院', downDoctor: '刘主任', personSex: 1, personNumber: '00010220', mesNum: 2, finish: 0, unfinish: 2,mesType: 2,time: '2018.01.02',isRead: true},
-                    // {img: require("./../assets/logo.png"), personName: '刘2', downHospital: '北医三院', downDoctor: '李主任', personSex: 0, personNumber: '00010220', mesNum: 0, finish: 1, unfinish: 4,mesType: 3,time: '2018.01.02',isRead: true},
-                    // {img: require("./../assets/logo.png"), personName: '刘3', downHospital: '北医三院', downDoctor: '赵主任', personSex: 0, personNumber: '00010220', mesNum: 0, finish: 3, unfinish: 4,mesType: 4,time: '2018.01.03',isRead: true},
-                    // {img: require("./../assets/logo.png"), personName: '刘4', downHospital: '北医三院', downDoctor: '何主任', personSex: 1, personNumber: '00010220', mesNum: 2, finish: 1, unfinish: 4,mesType: 1,time: '2018.01.04',isRead: true},
-                    // {img: require("./../assets/logo.png"), personName: '刘5', downHospital: '北医三院', downDoctor: '左主任', personSex: 0, personNumber: '00010220', mesNum: 0, finish: 2, unfinish: 4,mesType: 1,time: '2018.01.06',isRead: true},
-                    // {img: require("./../assets/logo.png"), personName: '刘5', downHospital: '北医三院', downDoctor: '博主任', personSex: 1, personNumber: '00010220', mesNum: 6, finish: 3, unfinish: 2,mesType: 1,time: '2018.01.07',isRead: true}
-                ],
+                personlistData: [],
                 selfDetail:{
                     img: require("./../assets/logo.png"),
                     personName: '刘大夫'
@@ -291,7 +274,7 @@
                 boardConfig: {
                     id: 'paint_box',
                     canDraw: 1,  // 1能画，0不能画
-                    color: '#ff0000',
+                    color: '#000000',
                     globalBackgroundColor: '#ffffff'
                 },
 
@@ -318,7 +301,8 @@
                 remoteVideos: {},
                 // endPoint: 'oss-cn-qingdao.aliyuncs.com', // OSS节点
                 // uploadBucket: 'ebond-oss-chatpic01', // OSS根目录
-                uploadDate: new Date()
+                uploadDate: new Date(),
+                signatureUrl: 'auth_api/client/'
             }
         },
         mounted () {
@@ -330,7 +314,7 @@
             this.getTencentConf();
             this.heartBeat();
             // this.notification()//消息推送
-            this.boardroomnum()
+            this.boardroomnum();
         },
         watch: {
             'imDialogue': 'scrollToBottom'
@@ -374,8 +358,6 @@
                 }).then(function (response) {
                     console.log('access profile');
                     let data = response.data;
-                    // self.userID = data[0]['username'];
-                    // self.userSig = data[0]['token'];
                     self.userPK = data[0]['id'];
                     self.nickName = '用户昵称' + self.userID;
                     self.loginConfig = {
@@ -399,7 +381,7 @@
 
             heartBeat() {
                 var self = this;
-                this.setOSS();
+                self.setOSS();
                 setInterval(function () {
                     self.setOSS();
                 },3000 * 1000);
@@ -407,12 +389,12 @@
 
             setOSS() {
                 var self = this;
-                axios.get('http://47.94.6.105:80/auth_api/client/', {
+                axios.get('http://47.94.6.105/auth_api/client/', {
                     headers: {
                         'Authorization': 'JWT' + self.jwt
                     }
                 }).then(function (response) {
-                    console.log('access client');
+                    console.log('access client', response);
                     let data = response.data,
                         uid = data[0]['uid'],
                         ukey = data[0]['ukey'],
@@ -837,15 +819,9 @@
             /**
              *  im 发送普通文本消息
              */
-            // sendMsg () {
-            //     if(this.imSendMes == ''){
-            //         return
-            //     }
-            //     // let newMes = {isSelf:true,title:this.imSendMes};
-            //     // this.imDialogue.push(newMes);
-            //     this.ticSdk.sendTextMessage(this.imMsg.common.data, this.imMsg.common.toUser);
-            //     this.imSendMes = '';
-            // },
+            sendMsg () {
+
+            },
             /**
              * 跳转到滚动跳底部
              */
@@ -912,6 +888,16 @@
                 self.step = 'third'
             },
 
+            setBoardVisibility() {
+                this.isVideoState = !this.isVideoState;
+                this.$nextTick(() => {
+                    document.getElementsByClassName('tx_board_canvas_wrap')[0].style.height = 400 + 'px'
+                    document.getElementsByTagName('canvas')[0].height = 400
+                    document.getElementsByClassName('tic_board_bg')[0].style.backgroundColor = 'rgba(255,255,255,0)';
+                    console.log(111)
+                })
+            },
+
             createRoom(roomnum) {
                 this.ticSdk.createClassroom({
                     roomID: roomnum,
@@ -935,7 +921,7 @@
 
                     // 主动推流
                     if (this.pushModel === 1) {
-                        
+                        this.startRTC();
                     }
                 });
 
@@ -965,15 +951,20 @@
             ossUpload: function (id) {
                 var file = document.getElementById(id).files[0];
                 var index = file.name.lastIndexOf('.');
-                var key = 'chat' + this.uploadDate.toLocaleDateString() + '/' +this.userID + '-' + (new Date()) + file.name.substring(index);
+                var Key = 'chat' + this.uploadDate.toLocaleDateString() + '/' +this.userID + '-' + (new Date()) + file.name.substring(index);
                 var filesize = file.size;
 
                 if (file && /\.(bmp|jpg|jpeg|png|gif|webp|svg|psd|ai)$/i.test(file.name)) {
                     var self = this;
                     this.showTip('图片正在上传，请等待');
+                    console.log(this.client)
                     this.client.put(Key, file).then(function (result) {
                         console.log(result);
                         console.log('upload success')
+                        var previewUrl = self.client.signatureUrl(Key, {
+                            expires: 360000,
+                        });
+                        board.setBackgroundPic(previewUrl);
                     }).catch(function (error) {
                         console.log(error)
                     });
@@ -1098,6 +1089,14 @@
                 this.ticSdk.getBoardInstance().setType(type);
             },
 
+            switchEraser() {
+                this.setType(BoardSDK.DRAW_TYPE.ERASER);
+            },
+
+            switchPolyline() {
+                this.setType(BoardSDK.DRAW_TYPE.LINE);
+            },
+
             /**
              * 设置涂鸦粗细
              * @param {*} num 
@@ -1111,7 +1110,7 @@
              * 清空当前页涂鸦(保留背景色/图片)
              */
             clearDraws() {
-            this.ticSdk.getBoardInstance().clearDraws();
+                this.ticSdk.getBoardInstance().clearDraws();
             },
 
             /**
@@ -1143,34 +1142,6 @@
             },
 
             /**
-             * 上传文件
-             */
-            uploadFile() {
-                var file = document.getElementById('file_input').files[0];
-                if (file && /\.(bmp|jpg|jpeg|png|gif|webp|svg|psd|ai)$/i.test(file.name)) {
-                    this.showTip('图片正在上传，请等待');
-                    this.ticSdk.addImgFile(file, (total, data) => {
-                    this.showTip('图片上传成功');
-                    document.getElementById('file_input').value = '';
-                    }, (err) => {
-                    console.error(err);
-                    this.showErrorTip('图片上传失败，请重试');
-                    document.getElementById('file_input').value = '';
-                    });
-                } else {
-                    this.showTip('文件正在上传，请等待');
-                    this.ticSdk.addFile(file, (total, data) => {
-                    this.showTip('文件上传成功，共' + total + '页');
-                    document.getElementById('file_input').value = '';
-                    }, (err) => {
-                    console.error(err);
-                    this.showErrorTip('文件上传失败，请重试');
-                    document.getElementById('file_input').value = '';
-                    });
-                }
-            },
-
-            /**
              * 白板事件回调处理
              * @param {*} data 
              */
@@ -1186,19 +1157,7 @@
             quit() {
                 this.ticSdk.quitClassroom();
             },
-            // closeAudio () {
-            //     alert(1)
-            //     this.RTC.closeAudio();
-            // },
-            // openAudio (){
-            //     this.RTC.openAudio();
-            // },
-            // closeVideo () {
-            //     this.RTC.closeVideo();
-            // },
-            // openVideo (){
-            //     this.RTC.openVideo();
-            // },
+
             stopWs (){
                 // this.RTC.global.websocket.close();
                 this.isShowVideo=false;
@@ -1580,7 +1539,7 @@
                 justify-content: center;
                 align-items: center;
                 background-color:$medical-bgCol_ce;
-                padding:10px;
+                padding: 5px 10px;
                 box-sizing: border-box;
                 .mes-flex{
                     flex:1;
@@ -1588,11 +1547,6 @@
                     .el-input__inner{
                         border-radius: 4px;
                     }
-                }
-                & > i{
-                    margin-left: 10px;
-                    font-size: 28px;
-                    color: $medical-col_white;
                 }
             }
         }
@@ -1620,10 +1574,14 @@
         box-sizing: border-box;
         .edit-photo_drop{
             display: inline-block;
-            max-width:400px;
-            min-width: 200px;
-            min-height: 200px;
-            max-height:100%;
+            position: relative;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0);
+            // max-width:400px;
+            // min-width: 200px;
+            // min-height: 200px;
+            // max-height:100%;
             border:2px dashed $medical-borCol_white;
             font-size: 0px;
             .edit-photo_dropImg{
