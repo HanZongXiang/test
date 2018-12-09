@@ -504,6 +504,7 @@
                             document.getElementById(data.videoId).srcObject = data.stream;
                         }
                     });
+                    document.getElementById('remoteVideo').srcObject = data.stream
                     this.showTip('WebRTC接收到远端流');
                 });
 
@@ -844,9 +845,7 @@
                     "to_practitioner" : item.to_practitioner,
                     "from_practitioner":item.from_practitioner
                 }
-                APINOTI.creatboardroomnum(params).then(res=>{
-                    console.log('生成房间：',res)
-                })
+
 
                 this.tabNum = index
                 this.personDetail = item;
@@ -885,17 +884,12 @@
                     console.log('join room');
                     self.joinRoom(self.roomID)
                 };
+                this.startRTC();
                 self.step = 'third'
             },
 
             setBoardVisibility() {
                 this.isVideoState = !this.isVideoState;
-                this.$nextTick(() => {
-                    document.getElementsByClassName('tx_board_canvas_wrap')[0].style.height = 400 + 'px'
-                    document.getElementsByTagName('canvas')[0].height = 400
-                    document.getElementsByClassName('tic_board_bg')[0].style.backgroundColor = 'rgba(255,255,255,0)';
-                    console.log(111)
-                })
             },
 
             createRoom(roomnum) {
@@ -912,40 +906,6 @@
             joinRoom(roomnum) {
                 this.ticSdk.joinClassroom(roomnum, this.webrtcConfig, this.boardConfig);
                 console.log('joinRoom successfully')
-            },
-
-            streaming() {
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.TIC.JOIN_CLASS_ROOM_SUCC, data => {
-                    window.board = this.ticSdk.getBoardInstance();
-                    window.WebRTC = this.ticSdk.getWebRTCInstance();
-
-                    // 主动推流
-                    if (this.pushModel === 1) {
-                        this.startRTC();
-                    }
-                });
-
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.LOCAL_STREAM_ADD, data => {
-                    document.getElementById('localVideo').srcObject = data.stream;
-                    this.isPushing = 1;
-                    console.log('WebRTC接收到本地流')
-                });
-
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.REMOTE_STREAM_UPDATE, data => {
-                    this.$set(this.remoteVideos, data.videoId, data);
-                    this.$nextTick(() => {
-                        if (document.getElementById(data.videoId)) {
-                            document.getElementById(data.videoId).srcObject = data.stream;
-                        }
-                    });
-                    console.log('WebRTC接收到远端流');
-                });
-
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.REMOTE_STREAM_REMOVE, data => {
-                    this.$delete(this.remoteVideos, data.videoId);
-                    this.stopPush();
-                    console.log('WebRTC远端流断开');
-                });
             },
             
             ossUpload: function (id) {
@@ -1433,12 +1393,11 @@
         }
         .remoteVideo{
             position: absolute;
-            display: block;
             z-index: 1;
-            width:100%;
-            height:100%;
-            left:0px;
-            top:0px;
+            left:200px;
+            top:0;
+            width: 600px;
+            height: 800px;
         }
         .chart-video_button{
             display: inline-block;
