@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        #div1 {
+            width: 200px;
+            height: 200px;
+            background: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="div1">将文件拖拽到此区域</div>
+    <ul id="ul1">
+
+    </ul>
+</body>
+<script>
+    var div1 = document.getElementById('div1')
+    div1.ondragenter = function() {
+        this.innerHTML = '可以释放了'
+    }
+    div1.ondragover = function(e) {
+        e.preventDefault();
+    }
+    div1.ondragleave = function() {
+        this.innerHTML = '将文件拖拽至此区域'
+    }
+    div1.ondrop = function(e) {
+        e.preventDefault();
+        var file = e.dataTransfer.files[0];
+        axios.get('http://upload.yaojunrong.com/getToken').then(res => {
+            console.log(res, file);
+            let formData = new FormData();
+            formData.append('file', file, file.name);
+            formData.append('token', res.data.data);
+
+            axios.post('https://upload-z1.qiniup.com', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(response => {
+                console.log(response.data.url)
+            })
+        })
+        
+        // console.log(files)
+        // var fd = new FileReader();
+        // if (files[0].type.indexOf('image') != -1) {
+        //     fd.readAsDataURL(files[0]);
+        //     var ul = document.getElementById('ul1');
+        //     fd.onload = function() {
+        //         var li1 = document.createElement('li');
+        //         var img1 = document.createElement('img');
+        //         img1.src = this.result;
+        //         li1.appendChild(img1);
+        //         ul1.appendChild(li1)
+            // }
+        // } else {
+        //     alert('请选择图片上传')
+        // }
+    }
+</script>
+</html>

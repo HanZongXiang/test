@@ -53,13 +53,17 @@
                     </ul>
                 </div>
                 <ul>
-                    <li :class="[item.isSelf?'imDialogue_self':'']" v-for="(item,itemIndex) in imDialogue" :key="itemIndex">
+                    <!-- <li :class="[item.isSelf?'imDialogue_self':'']" v-for="(item,itemIndex) in imDialogue" :key="itemIndex">
                         <div class="chart-imDialogue_img"><img :src="item.isSelf ? selfDetail.img : personDetail.img"/></div>
                         <div class="chart-imDialogue_content">
                             <img v-if="item.isImg" :src="item.img" />
                             <span v-else>{{item.title}}</span>
                             <div class="mesage-state">已读</div>
                         </div>
+                    </li> -->
+                    <li v-for="(msg,index) in msgs" :key="index">
+                        <span>{{msg.send}}</span> : 
+                        <span>{{msg.content}}</span>
                     </li>
                 </ul>
             </div>
@@ -67,7 +71,7 @@
             <div class="chart-imSend" ref="imSend">
                 <!--<el-form>-->
                     <div class="el-input">
-                        <input type="text" autocomplete="off" v-model="imSendMes" placeholder="请输入内容" class="el-input__inner" @keyup.enter="sendMsg">
+                        <input type="text" autocomplete="off" v-model="imMsg.common.data" placeholder="请输入内容" class="el-input__inner" @keyup.enter="sendMsg">
                     </div>
                 <!--</el-form>-->
                 <el-button type="success" class="imSend-botton" @click.native="sendMsg">发送</el-button>
@@ -95,6 +99,7 @@
             </div>
             <!--修改选中的图片-->
             <div class="edit-photo_content" v-show="!isVideoState">
+                <!-- <div id="paint_box" class="edit-photo_drop"></div> -->
                 <drop class="edit-photo_drop" @arrive="arrive" @away="away" name="imgDrag" id="paint_box">
                     <img class="edit-photo_dropImg" :src="dropImg">
                 </drop>
@@ -120,7 +125,7 @@
                 </ul>
                 <div class="chart-video_mes">
                     <div class="el-input el-input--mini mes-flex">
-                        <input type="text" autocomplete="off" placeholder="请输入内容" class="el-input__inner">
+                        <input type="text" autocomplete="off" placeholder="请输入内容" class="el-input__inner" id="input">
                     </div>
                     <label for="fileInput">
                         <input type="file" id="fileInput" style="display: none" @change="ossUpload('fileInput')" accept="image/*, application/pdf, application/msword, application/vnd.ms-powerpoint, application/vnd.ms-excel">
@@ -175,19 +180,7 @@
                     online: true,
                     pinfo: {}
                 },//人员详情信息
-                imDialogue: [
-                    // {isSelf:true,title:'这是一个好东西啊1'},
-                    // {isSelf:false,title:'这是一个好东西啊2'},
-                    // {isSelf:true,title:'这是一个好这是一个好东西啊这是一个好东西啊这是一个好东西啊这是一个好东西啊东西啊'},
-                    // {isSelf:false,title:'这是一个好东西啊'},
-                    // {isSelf:true,title:'这是一个好东西啊'},
-                    // {isSelf:false,title:'这是一个好东西啊'},
-                    // {isSelf:false,title:'这是一个好东西啊',isImg: true,img: require("./../assets/logo.png")},
-                    // {isSelf:true,title:'这是一个好东西啊'},
-                    // {isSelf:true,title:'这是一个好东西啊'},
-                    // {isSelf:false,title:'这是一个好东西啊'},
-                    // {isSelf:true,title:'这是一个好东西啊'},
-                ],
+                imDialogue: [],
                 isVideoState: true,//是否为视频状态  false为编辑图片状态
                 videoMes:[
                     {isSelf:true,photo:require("./../assets/photo.jpg")},
@@ -215,7 +208,7 @@
                 // userSig: '',    //用户签名
                 nickName: sessionStorage.getItem('IIC_NICKNAME'), //用户名称+userID
                 userPK: 0,
-                roomID: 4,
+                roomID: 2,
                 ticSdk: null,
                 isFirstConnected: 0, //是否是第一次链接
                 enableCamera: true,
@@ -299,17 +292,14 @@
                 uploadUrl: '',
                 jwt: localStorage.getItem('token'),
                 remoteVideos: {},
-                // endPoint: 'oss-cn-qingdao.aliyuncs.com', // OSS节点
-                // uploadBucket: 'ebond-oss-chatpic01', // OSS根目录
                 uploadDate: new Date(),
-                signatureUrl: 'auth_api/client/'
             }
         },
         mounted () {
             this.screenHeight = document.documentElement.clientHeight;
             this.screenWidth = document.documentElement.clientWidth;
             /*im 聊天部分高度设置*/
-            this.imDialogueHei = this.screenHeight - this.$refs.imSend.offsetHeight - this.$refs.imTitle.offsetHeight;
+            // this.imDialogueHei = this.screenHeight - this.$refs.imSend.offsetHeight - this.$refs.imTitle.offsetHeight;
 
             this.getTencentConf();
             this.heartBeat();
@@ -372,6 +362,7 @@
                     self.ticSdk.init();
                     self.initEvent();
                     self.ticSdk.login(self.loginConfig);
+                    console.log('self: ',self.ticSdk)
                     self.setSocket();
                     console.log('websocket init')
                 }).catch(function (error) {
@@ -808,6 +799,9 @@
              * @param dropComponent
              */
             dragEnd(e, self, dropComponent) {
+                // console.log(e.target)
+                // console.log(e, self, dropComponent)
+                console.log(self)
                 if (!dropComponent) { // 没有落在drop组件中,dropComponent为null
                     return
                 }
@@ -820,7 +814,9 @@
              *  im 发送普通文本消息
              */
             sendMsg () {
-
+                this.ticSdk.sendTextMessage(this.imMsg.common.data, this.imMsg.common.toUser);
+                console.log(this.imMsg.common.data);
+                this.imMsg.common.data = '';
             },
             /**
              * 跳转到滚动跳底部
@@ -844,9 +840,9 @@
                     "to_practitioner" : item.to_practitioner,
                     "from_practitioner":item.from_practitioner
                 }
-                APINOTI.creatboardroomnum(params).then(res=>{
-                    console.log('生成房间：',res)
-                })
+                // APINOTI.creatboardroomnum(params).then(res=>{
+                //     console.log(res)
+                // })
 
                 this.tabNum = index
                 this.personDetail = item;
@@ -885,6 +881,7 @@
                     console.log('join room');
                     self.joinRoom(self.roomID)
                 };
+                this.startRTC();
                 self.step = 'third'
             },
 
@@ -913,40 +910,6 @@
                 this.ticSdk.joinClassroom(roomnum, this.webrtcConfig, this.boardConfig);
                 console.log('joinRoom successfully')
             },
-
-            streaming() {
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.TIC.JOIN_CLASS_ROOM_SUCC, data => {
-                    window.board = this.ticSdk.getBoardInstance();
-                    window.WebRTC = this.ticSdk.getWebRTCInstance();
-
-                    // 主动推流
-                    if (this.pushModel === 1) {
-                        this.startRTC();
-                    }
-                });
-
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.LOCAL_STREAM_ADD, data => {
-                    document.getElementById('localVideo').srcObject = data.stream;
-                    this.isPushing = 1;
-                    console.log('WebRTC接收到本地流')
-                });
-
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.REMOTE_STREAM_UPDATE, data => {
-                    this.$set(this.remoteVideos, data.videoId, data);
-                    this.$nextTick(() => {
-                        if (document.getElementById(data.videoId)) {
-                            document.getElementById(data.videoId).srcObject = data.stream;
-                        }
-                    });
-                    console.log('WebRTC接收到远端流');
-                });
-
-                this.ticSdk.on(TICSDK.CONSTANT.EVENT.WEBRTC.REMOTE_STREAM_REMOVE, data => {
-                    this.$delete(this.remoteVideos, data.videoId);
-                    this.stopPush();
-                    console.log('WebRTC远端流断开');
-                });
-            },
             
             ossUpload: function (id) {
                 var file = document.getElementById(id).files[0];
@@ -959,11 +922,11 @@
                     this.showTip('图片正在上传，请等待');
                     console.log(this.client)
                     this.client.put(Key, file).then(function (result) {
-                        console.log(result);
-                        console.log('upload success')
+                        console.log(result, 'upload success');
                         var previewUrl = self.client.signatureUrl(Key, {
                             expires: 360000,
                         });
+                        console.log(previewUrl)
                         board.setBackgroundPic(previewUrl);
                     }).catch(function (error) {
                         console.log(error)
@@ -1036,7 +999,6 @@
                     }
                 }, (error) => {
                     this.showErrorTip(`获取本地流失败，${JSON.stringify(error)}`);
-                    console.log(JSON.stringify(error))
                 });
             },
             
