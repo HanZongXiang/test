@@ -40,8 +40,8 @@ export default {
   },
   methods: {
       handle1(val){
-          console.log(this.$chatSocket)
-          alert(val)
+          console.log(val)
+          this.$bus.$emit('sendData', val)
       },
       handle2(val){
           alert(val)

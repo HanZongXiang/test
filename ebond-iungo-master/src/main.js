@@ -7,7 +7,9 @@ import 'element-ui/lib/theme-chalk/index.css'
 
 import router from './router'
 import store from './store'
+import bus from './bus/bus'
 
+Vue.use(bus)
 // 图片拖拽
 import VueLeave from 'vue-leave'
 Vue.use(VueLeave)

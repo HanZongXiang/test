@@ -1,6 +1,5 @@
-
+import Vue from 'vue'
 import axios from 'axios'
-import {bus} from '@/bus/bus.js'
 
 axios.defaults.withCredentials = true;
 // axios.defaults.headers.common['token'] = localStorage.getItem('token');
@@ -25,7 +24,7 @@ axios.interceptors.response.use(function (response) {
   if (response.data && (response.config.url != '/auth_api/reg_first' || response.config.url != '/auth_api/reg_second' || response.config.url != '/auth_api/token')) {
     if (!localStorage.getItem("token")) {
       //未登录
-      bus.$emit('goto', '/login')
+      Vue.prototype.$bus.$emit('goto', '/login')
     }
   }
   return response;

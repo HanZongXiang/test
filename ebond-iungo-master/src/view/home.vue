@@ -65,7 +65,6 @@
 import APIUSER from '@/api/api_user.js'
 import APIDATA from '@/api/api_data.js'
 require('../WebWX/OSS.min.js')
-import {bus} from '@/bus/bus.js'
 export default {
   name: 'Home',
   data () {
@@ -119,7 +118,7 @@ export default {
   created () {
     // console.log(this.$router.options.routes[1].children)
     this.routesOptions = this.$router.options.routes[1].children;
-    bus.$on('goto', (url) => {
+    this.$bus.$on('goto', (url) => {
       this.$router.push(url);
     })
   },

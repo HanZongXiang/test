@@ -105,8 +105,8 @@
                 </drop>
                 <!--工具部分-->
                 <div class="edit-photoTool">
-                    <i class="edit-photoTool_pencil" @click="switchPolyline()"></i><br>
-                    <i class="edit-photoTool_eraser" @click="switchEraser()"></i><br>
+                    <i class="edit-photoTool_pencil" @click="switchPolyline"></i><br>
+                    <i class="edit-photoTool_eraser" @click="switchEraser"></i><br>
                     <i class="edit-photoTool_color tool-colorRed " :class="{'edit-photoTool_active': toolPencilType}" @click="setRedPencil()"></i><br>
                     <i class="edit-photoTool_color tool-colorCyan" :class="{'edit-photoTool_active': !toolPencilType}" @click="setCyanPencil()"></i>
                 </div>
@@ -305,6 +305,9 @@
             this.heartBeat();
             // this.notification()//消息推送
             this.boardroomnum();
+            this.$bus.$on('sendData', msg => {
+                    console.log(msg)
+                })
         },
         watch: {
             'imDialogue': 'scrollToBottom'
@@ -495,6 +498,7 @@
                             document.getElementById(data.videoId).srcObject = data.stream;
                         }
                     });
+                    document.getElementById('remoteVideo').srcObject = data.stream
                     this.showTip('WebRTC接收到远端流');
                 });
 
@@ -840,9 +844,6 @@
                     "to_practitioner" : item.to_practitioner,
                     "from_practitioner":item.from_practitioner
                 }
-                // APINOTI.creatboardroomnum(params).then(res=>{
-                //     console.log(res)
-                // })
 
                 this.tabNum = index
                 this.personDetail = item;
@@ -887,12 +888,6 @@
 
             setBoardVisibility() {
                 this.isVideoState = !this.isVideoState;
-                this.$nextTick(() => {
-                    document.getElementsByClassName('tx_board_canvas_wrap')[0].style.height = 400 + 'px'
-                    document.getElementsByTagName('canvas')[0].height = 400
-                    document.getElementsByClassName('tic_board_bg')[0].style.backgroundColor = 'rgba(255,255,255,0)';
-                    console.log(111)
-                })
             },
 
             createRoom(roomnum) {
@@ -1395,12 +1390,11 @@
         }
         .remoteVideo{
             position: absolute;
-            display: block;
             z-index: 1;
-            width:100%;
-            height:100%;
-            left:0px;
-            top:0px;
+            left:200px;
+            top:0;
+            width: 600px;
+            height: 800px;
         }
         .chart-video_button{
             display: inline-block;
